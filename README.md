@@ -26,7 +26,7 @@ Everything else is the responsibility of the command's author.
 # Getting started
 ## Installation
 ### Building from source
-To get started, first make sure you've properly set up your [Go](http://golang.org/doc/install) 1.14 or newer environment and then run
+To get started, first make sure you've properly set up your [Go](http://golang.org/doc/install) 1.21 or newer environment and then run
 ```bash
 $ go build github.com/adnanh/webhook
 ```
@@ -109,8 +109,16 @@ In either case, the given file part will be parsed as JSON and added to the `pay
 
 TLS version and cipher suite selection flags are available from the command line. To list available cipher suites, use the `-list-cipher-suites` flag.  The `-tls-min-version` flag can be used with `-list-cipher-suites`.
 
+## Running behind a reverse proxy
+[webhook][w] may be run behind a "reverse proxy" - another web-facing server such as [Apache httpd](https://httpd.apache.org) or [Nginx](https://nginx.org) that accepts requests from clients and forwards them on to [webhook][h].  You can have [webhook][w] listen on a regular TCP port or on a Unix domain socket (with the `-socket` flag), then configure your proxy to send requests for a specific host name or sub-path over that port or socket to [webhook][w].
+
+Note that when running in this mode the [`ip-whitelist`](docs/Hook-Rules.md#match-whitelisted-ip-range) trigger rule will not work as expected, since it will be checking the address of the _proxy_, not the _client_.  Client IP restrictions will need to be enforced within the proxy, before it decides whether to forward the request to [webhook][w].
+
 ## CORS Headers
 If you want to set CORS headers, you can use the `-header name=value` flag while starting [webhook][w] to set the appropriate CORS headers that will be returned with each response.
+
+## Running under `systemd`
+On platforms that use [systemd](https://systemd.io), [webhook][w] supports the _socket activation_ mechanism.  If [webhook][w] detects that it has been launched from a systemd-managed socket it will automatically use that instead of opening its own listening port.  See [the systemd page](docs/Systemd-Activation.md) for full details.
 
 ## Interested in running webhook inside of a Docker container?
 You can use one of the following Docker images, or create your own (please read [this discussion](https://github.com/adnanh/webhook/issues/63)):
